@@ -1,0 +1,504 @@
+import pygame
+import os
+import random
+
+pygame.init()
+
+screenWidth = 640
+screenHeight = 480
+
+screen = pygame.display.set_mode((screenWidth, screenHeight))
+clock = pygame.time.Clock()
+
+#36,52
+ship1 = pygame.image.load(os.path.join('data', '8bitship1.png')).convert() 
+ship2 = pygame.image.load(os.path.join('data', '8bitship1.png')).convert() 
+ship3 = pygame.image.load(os.path.join('data', '8bitship1.png')).convert() 
+ship4 = pygame.image.load(os.path.join('data', 'level2ship.png')).convert()
+ship5 = pygame.image.load(os.path.join('data', 'level3ship.png')).convert()
+asteroid1 = pygame.image.load(os.path.join('data', 'asteroid1.png')).convert() 
+shot = pygame.image.load(os.path.join('data', 'shot.png')).convert()
+background = pygame.image.load(os.path.join('data', 'spacebackground.png')).convert() 
+title = pygame.image.load(os.path.join('data', 'title.png')).convert() 
+#title size 450, 114
+#level screen size 403,114
+level1 = pygame.image.load(os.path.join('data', 'level1.png')).convert() 
+level2 = pygame.image.load(os.path.join('data', 'level2.png')).convert() 
+level3 = pygame.image.load(os.path.join('data', 'level3.png')).convert() 
+heart = pygame.image.load(os.path.join('data', '8bitheart.png')).convert() 
+#29,25
+#612,319
+gameover = pygame.image.load(os.path.join('data', 'gameover.png')).convert() 
+#524,99
+winner = pygame.image.load(os.path.join('data', 'youwon.png')).convert() 
+intruction = pygame.image.load(os.path.join('data', 'instructions.png')).convert() 
+
+black = (0,0,0)
+white = (255,255,255)
+red = (255,0,0)
+blue = (0,0,255)
+green = (0,255,0)
+yellow = (255,255,0)
+
+ship1.set_colorkey(white)#make white transparent on ship image
+ship2.set_colorkey(white)
+ship3.set_colorkey(white)
+ship4.set_colorkey(white)
+ship5.set_colorkey(white)
+asteroid1.set_colorkey(white)
+shot.set_colorkey(white)
+title.set_colorkey(white)
+level1.set_colorkey(white)
+level2.set_colorkey(white)
+level3.set_colorkey(white)
+gameover.set_colorkey(white)
+winner.set_colorkey(white)
+intruction.set_colorkey(white)
+
+
+titleX = 26
+titleY = 120
+
+titleXM = 2 
+titleYM = 2
+
+level1X = 0
+level1Y = 0
+
+level2X = 0
+level2Y = 0
+
+level3X = 0
+level3Y = 0
+
+ship1X = 260  #ship starting position
+ship1Y = 470
+
+ship2X = 310
+ship2Y = 450
+
+ship3X = 360
+ship3Y = 470
+
+asteroid1X = 0
+asteroid1Y = 0
+
+asteroid1Visible = True 
+asteroid1Cooldown = 0
+
+introOn = True
+menuOn = False
+shotFlag = False
+
+font = pygame.font.SysFont("LCD5x8H", 24)
+
+while introOn:
+    ship1X = ship1X
+    ship1Y -= 5
+    ship2X = ship2X
+    ship2Y -= 5
+    ship3X = ship3X
+    ship3Y -= 5
+
+    screen.blit(background, [0, 0])
+    screen.blit(ship1,[ship1X, ship1Y])
+    screen.blit(ship2,[ship2X, ship2Y])
+    screen.blit(ship3,[ship3X, ship3Y])
+
+    if ship3Y < -50:
+        introOn = False
+        titleOn = True
+
+    pygame.display.flip()
+    clock.tick(60) #run the at 60 fps
+
+while titleOn:
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            pygame.QUIT
+            titleOn = False
+
+    keys = pygame.key.get_pressed()
+    
+    screen.blit(background, [0, 0])
+    titleX += titleXM 
+    titleY += titleYM
+
+    if titleY >= 366:
+        titleYM *= -1
+
+    if titleY <= 0 :
+        titleYM *= -1
+
+    if titleX >= 190 :
+        titleXM *= -1
+    
+    if titleX <= 0:
+        titleXM *= -1
+
+    text1 = font.render("*press space to continue*", True, (white))
+
+    screen.blit(title,[titleX, titleY])
+    screen.blit(text1,(50, 448))
+    pygame.display.flip()
+    clock.tick(60)
+
+introcounter = 0
+
+while introcounter < 1000:
+    screen.blit(background, [0, 0])
+    screen.blit(intruction, [0, 0])
+    introcounter +=1
+    pygame.display.flip()
+    clock.tick(60)
+
+counter1 = 0
+
+while counter1 < 180:
+    screen.blit(background, [0, 0])
+    screen.blit(level1, [119, 183])
+    counter1 +=1
+    pygame.display.flip()
+    clock.tick(60)
+
+ship1X = 300
+ship1Y = 400
+
+points = 0
+score = 0
+missed = 0
+strikes = 0
+misses = 0
+lives = 3
+
+while points < 100:
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            pygame.QUIT
+            gameOn = False
+  
+    keys = pygame.key.get_pressed()
+  
+    if keys[pygame.K_a]:  #if a is pressed, move left by 3
+        ship1X -= 5
+    if keys[pygame.K_d]:
+        ship1X += 5
+    if keys[pygame.K_s]:
+        ship1Y += 5
+    if keys[pygame.K_w]:
+        ship1Y -= 5
+    if keys[pygame.K_SPACE] and shotFlag == False:
+        shotFlag = True
+        shotX = ship1X + ((36/2)- (10/2))
+        shotY = ship1Y
+
+    if ship1X < 0:
+        ship1X = 640
+    if ship1X > 640:
+        ship1X = 0
+    if ship1Y < 0:
+        ship1Y = 480
+    if ship1Y > 480:
+        ship1Y = 0 
+
+    screen.blit(background, [0, 0])
+    screen.blit(ship1,[ship1X, ship1Y])
+    
+    if shotFlag:
+        screen.blit(shot, [shotX, shotY])
+        shotY -= 5
+        if shotY < -20:
+            shotFlag = False
+
+        asteroid1Collider = asteroid1.get_rect(topleft=(asteroid1X,asteroid1Y))
+        shotCollider = shot.get_rect(topleft=(shotX,shotY))
+
+        if asteroid1Collider.colliderect(shotCollider):
+            print("collision!")
+            currentShot = 0
+            points += 1
+            score += 1
+            asteroid1Visible = 0
+            asteroid1Cooldown = 50
+
+    if asteroid1Cooldown <= 0:  # only draw asteroid if cooldown time expires
+        if asteroid1Visible == True:
+            screen.blit(asteroid1,[asteroid1X, asteroid1Y])
+            asteroid1Y += 5
+            if asteroid1Y >= 500: # check to see if asteroid is off bottom
+                asteroid1Visible = False
+                strikes += 1
+                misses += 1
+                if strikes == 5:
+                    lives -= 1
+                    strikes = 0
+                    misses = 0
+        else:
+            asteroid1X = random.randint(20,460)
+            asteroid1Y = -10
+            screen.blit(asteroid1,[asteroid1X,asteroid1Y])
+            asteroid1Visible = 1
+    else:
+        #screen.blit(asteroid1exp, [asteroid1X,asteroid1Y])
+        asteroid1Cooldown -=1
+    Missed = 'Strikes:' + str(misses)
+    Score = 'Score:' + str(score)
+    text2 = font.render(Score , True, (white))
+    text3 = font.render(Missed, True, (white))
+    screen.blit(text2,(0, 0))
+    screen.blit(text3, (0, 20))
+    if lives == 3:
+        screen.blit(heart, (0, 40))
+        screen.blit(heart, (30, 40))
+        screen.blit(heart, (60, 40))
+    if lives == 2:
+        screen.blit(heart, (0, 40))
+        screen.blit(heart, (30, 40))
+    if lives == 1:
+        screen.blit(heart, (0, 40))
+    if lives < 0:
+        gameover1 = 0
+        while gameover1 < 180:
+            screen.blit(background, [0, 0])
+            screen.blit(gameover, [14, 80])
+            counter1 +=1
+            pygame.display.flip()
+            clock.tick(60)
+
+    pygame.display.flip()
+    clock.tick(60) #run the at 60 fps
+ 
+counter2 = 0
+
+while counter2 < 180:
+    screen.blit(background, [0, 0])
+    screen.blit(level2, [119, 183])
+    counter2 +=1
+    pygame.display.flip()
+    clock.tick(60)
+
+ship4X = 300
+ship4Y = 400
+
+while points >= 100 and points <= 500:
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            pygame.QUIT
+  
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_a]:  #if a is pressed, move left by 3
+        ship4X -= 5
+    if keys[pygame.K_d]:
+        ship4X += 5
+    if keys[pygame.K_s]:
+        ship4Y += 5
+    if keys[pygame.K_w]:
+        ship4Y -= 5
+    if keys[pygame.K_SPACE] and shotFlag == False:
+        shotFlag = True
+        shotX = ship4X + ((36/2)- (10/2))
+        shotY = ship4Y
+
+    if ship4X < 0:
+        ship4X = 640
+    if ship4X > 640:
+        ship4X = 0
+    if ship4Y < 0:
+        ship4Y = 480
+    if ship4Y > 480:
+        ship4Y = 0 
+
+    screen.blit(background, [0, 0])
+    screen.blit(ship4,[ship4X, ship4Y])
+    
+    if shotFlag:
+        screen.blit(shot, [shotX, shotY])
+        shotY -= 5
+        if shotY < -20:
+            shotFlag = False
+
+        asteroid1Collider = asteroid1.get_rect(topleft=(asteroid1X,asteroid1Y))
+        shotCollider = shot.get_rect(topleft=(shotX,shotY))
+
+        if asteroid1Collider.colliderect(shotCollider):
+            print("collision!")
+            currentShot = 0
+            points += 2
+            score += 2
+            asteroid1Visible = 0
+            asteroid1Cooldown = 10
+
+    if asteroid1Cooldown <= 0:  # only draw asteroid if cooldown time expires
+        if asteroid1Visible == True:
+            screen.blit(asteroid1,[asteroid1X, asteroid1Y])
+            asteroid1Y += 5
+            if asteroid1Y >= 500: # check to see if asteroid is off bottom
+                asteroid1Visible = False
+                strikes += 1
+                misses += 1
+                if strikes == 5:
+                    lives -= 1
+                    strikes = 0
+                    misses = 0
+        else:
+            asteroid1X = random.randint(20,460)
+            asteroid1Y = -10
+            screen.blit(asteroid1,[asteroid1X,asteroid1Y])
+            asteroid1Visible = 1
+    else:
+        #screen.blit(asteroid1exp, [asteroid1X,asteroid1Y])
+        asteroid1Cooldown -=1
+
+    Score = 'Score:' + str(score)
+    text2 = font.render(Score , True, (white))
+    screen.blit(text2,(0, 0))
+    Missed = 'Strikes:' + str(misses)
+    Score = 'Score:' + str(score)
+    text2 = font.render(Score , True, (white))
+    text3 = font.render(Missed, True, (white))
+    screen.blit(text2,(0, 0))
+    screen.blit(text3, (0, 20))
+    if lives == 3:
+        screen.blit(heart, (0, 40))
+        screen.blit(heart, (30, 40))
+        screen.blit(heart, (60, 40))
+    if lives == 2:
+        screen.blit(heart, (0, 40))
+        screen.blit(heart, (30, 40))
+    if lives == 1:
+        screen.blit(heart, (0, 40))
+    if lives < 0:
+        gameover2 = 0
+        while gameover2 < 180:
+            screen.blit(background, [0, 0])
+            screen.blit(gameover, [14, 80])
+            counter1 +=1
+            pygame.display.flip()
+            clock.tick(60)
+            pygame.quit()
+    
+    pygame.display.flip()
+    clock.tick(60) #run the at 60 fps
+
+counter3 = 0
+
+while counter3 < 180:
+    screen.blit(background, [0, 0])
+    screen.blit(level3, [119, 183])
+    counter3 +=1
+    pygame.display.flip()
+    clock.tick(60)
+
+ship5X = 300
+ship5Y = 400
+
+while points >= 500 and points <= 1000:
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            pygame.QUIT
+  
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_a]:  #if a is pressed, move left by 3
+        ship5X -= 5
+    if keys[pygame.K_d]:
+        ship5X += 5
+    if keys[pygame.K_s]:
+        ship5Y += 5
+    if keys[pygame.K_w]:
+        ship5Y -= 5
+    if keys[pygame.K_SPACE] and shotFlag == False:
+        shotFlag = True
+        shotX = ship5X + ((36/2)- (10/2))
+        shotY = ship5Y
+
+    if ship5X < 0:
+        ship5X = 640
+    if ship5X > 640:
+        ship5X = 0
+    if ship5Y < 0:
+        ship5Y = 480
+    if ship5Y > 480:
+        ship5Y = 0 
+
+    screen.blit(background, [0, 0])
+    screen.blit(ship5,[ship5X, ship5Y])
+    
+    if shotFlag:
+        screen.blit(shot, [shotX, shotY])
+        shotY -= 5
+        if shotY < -20:
+            shotFlag = False
+
+        asteroid1Collider = asteroid1.get_rect(topleft=(asteroid1X,asteroid1Y))
+        shotCollider = shot.get_rect(topleft=(shotX,shotY))
+
+        if asteroid1Collider.colliderect(shotCollider):
+            print("collision!")
+            currentShot = 0
+            points += 5
+            score += 5
+            asteroid1Visible = 0
+            asteroid1Cooldown = 1
+
+    if asteroid1Cooldown <= 0:  # only draw asteroid if cooldown time expires
+        if asteroid1Visible == True:
+            screen.blit(asteroid1,[asteroid1X, asteroid1Y])
+            asteroid1Y += 5
+            if asteroid1Y >= 500: # check to see if asteroid is off bottom
+                asteroid1Visible = False
+                strikes += 1
+                misses += 1
+                if strikes == 5:
+                    lives -= 1
+                    strikes = 0
+                    misses = 0
+        else:
+            asteroid1X = random.randint(20,460)
+            asteroid1Y = -10
+            screen.blit(asteroid1,[asteroid1X,asteroid1Y])
+            asteroid1Visible = 1
+    else:
+        #screen.blit(asteroid1exp, [asteroid1X,asteroid1Y])
+        asteroid1Cooldown -=1
+
+    Score = 'Score:' + str(score)
+    text2 = font.render(Score , True, (white))
+    screen.blit(text2,(0, 0))
+    Missed = 'Strikes:' + str(misses)
+    Score = 'Score:' + str(score)
+    text2 = font.render(Score , True, (white))
+    text3 = font.render(Missed, True, (white))
+    screen.blit(text2,(0, 0))
+    screen.blit(text3, (0, 20))
+    if lives == 3:
+        screen.blit(heart, (0, 40))
+        screen.blit(heart, (30, 40))
+        screen.blit(heart, (60, 40))
+    if lives == 2:
+        screen.blit(heart, (0, 40))
+        screen.blit(heart, (30, 40))
+    if lives == 1:
+        screen.blit(heart, (0, 40))
+    if lives < 0:
+        gameover3 = 0
+        while gameover3 < 180:
+            screen.blit(background, [0, 0])
+            screen.blit(gameover, [14, 80])
+            gameover3 +=1
+            pygame.display.flip()
+            clock.tick(60)
+            pygame.quit()
+    pygame.display.flip()
+    clock.tick(60) #run the at 60 fps
+
+if points > 1000:
+    endcounter = 0
+    while endcounter < 180:
+        screen.blit(background, [0, 0])
+        screen.blit(winner, [58, 190])
+        endcounter +=1
+        pygame.display.flip()
+        clock.tick(60)
+pygame.quit()
